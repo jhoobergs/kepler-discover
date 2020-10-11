@@ -33,7 +33,12 @@ plt.show();
 
 best_fit_period = periodogram.period_at_max_power
 print('Best fit period: {:.3f}'.format(best_fit_period))
-flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).scatter() # .errorbar();
+best_fit_duration = periodogram.duration_at_max_power
+print('Best fit duration: {:.3f}'.format(best_fit_duration))
+best_fit_depth = periodogram.depth_at_max_power
+print('Best fit depth: {:.3f}'.format(best_fit_depth))
+folded = flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power)
+folded.scatter() # .errorbar();
 plt.show();
-flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).plot_river()
+folded.plot_river()
 plt.show();
