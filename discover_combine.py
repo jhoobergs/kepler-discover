@@ -55,7 +55,7 @@ plt.show();
 
 best_fit_period = periodogram.period_at_max_power
 print('Best fit period: {:.3f}'.format(best_fit_period))
-flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).scatter() # .errorbar();
+flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).bin().scatter() # .errorbar();
 plt.show();
 flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).plot_river()
 plt.show();
