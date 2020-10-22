@@ -55,7 +55,7 @@ min_period=int(input())
 while min_period != -1:
     print("To")
     max_period=int(input())
-    periodogram = flat.to_periodogram(method="bls", period=np.arange(min_period, max_period, (max_period - min_period) / 100))
+    periodogram = flat.to_periodogram(method="bls", period=np.arange(min_period, max_period, 0.0001)) # (max_period - min_period) / 100))
     periodogram.plot();
     plt.show();
 
@@ -65,11 +65,25 @@ while min_period != -1:
     print('Best fit duration: {:.3f}'.format(best_fit_duration))
     best_fit_depth = periodogram.depth_at_max_power
     print('Best fit depth: {:.3f}'.format(best_fit_depth))
+    print('Best fit transit time: {:.3f}'.format(periodogram.transit_time_at_max_power))
     flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).bin().scatter() # .errorbar();
     plt.show();
     flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).plot_river()
     plt.show();
     print("From")
-    min_period=int(input())
-    if min_period == -1:
-        break
+    min_period=float(input())
+
+print("Period")
+period = float(input())
+while period != -1:
+    print("t0")
+    t0 = float(input())
+
+    folded = flat.fold(period=period, t0=t0)
+    folded.bin().scatter() # .errorbar();
+    plt.show();
+    folded.plot_river()
+    plt.show();
+        
+    print("Period")
+    period = float(input())
