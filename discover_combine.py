@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import argparse
 parser = argparse.ArgumentParser(description='Find an exoplanet around a star.')
 parser.add_argument('star', type=str, help='the star')
-parser.add_argument('min_period', type=float, help='the minimal period')
-parser.add_argument('max_period', type=float, help='the maximal period')
+#parser.add_argument('min_period', type=float, help='the minimal period')
+#parser.add_argument('max_period', type=float, help='the maximal period')
 #parser.add_argument('step_size' type=float, help='the period step size')
 
 args = parser.parse_args()
@@ -13,6 +13,7 @@ flat_lcs = []
 trend_lcs = []
 #lcfs = lk.search_lightcurvefile(args.star).download_all()
 for quarter in range(1, 18):
+    print(quarter)
     tpf = lk.search_targetpixelfile(args.star, quarter=quarter).download()
     if tpf is None:
         print("Missing", quarter)
@@ -49,17 +50,26 @@ flat.errorbar(label=args.star);
 plt.show();
 
 import numpy as np
-periodogram = flat.to_periodogram(method="bls", period=np.arange(args.min_period, args.max_period, (args.max_period - args.min_period) / 100))
-periodogram.plot();
-plt.show();
+print("From")
+min_period=int(input())
+while min_period != -1:
+    print("To")
+    max_period=int(input())
+    periodogram = flat.to_periodogram(method="bls", period=np.arange(min_period, max_period, (max_period - min_period) / 100))
+    periodogram.plot();
+    plt.show();
 
-best_fit_period = periodogram.period_at_max_power
-print('Best fit period: {:.3f}'.format(best_fit_period))
-best_fit_duration = periodogram.duration_at_max_power
-print('Best fit duration: {:.3f}'.format(best_fit_duration))
-best_fit_depth = periodogram.depth_at_max_power
-print('Best fit depth: {:.3f}'.format(best_fit_depth))
-flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).bin().scatter() # .errorbar();
-plt.show();
-flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).plot_river()
-plt.show();
+    best_fit_period = periodogram.period_at_max_power
+    print('Best fit period: {:.3f}'.format(best_fit_period))
+    best_fit_duration = periodogram.duration_at_max_power
+    print('Best fit duration: {:.3f}'.format(best_fit_duration))
+    best_fit_depth = periodogram.depth_at_max_power
+    print('Best fit depth: {:.3f}'.format(best_fit_depth))
+    flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).bin().scatter() # .errorbar();
+    plt.show();
+    flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power).plot_river()
+    plt.show();
+    print("From")
+    min_period=int(input())
+    if min_period == -1:
+        break

@@ -37,7 +37,9 @@ best_fit_duration = periodogram.duration_at_max_power
 print('Best fit duration: {:.3f}'.format(best_fit_duration))
 best_fit_depth = periodogram.depth_at_max_power
 print('Best fit depth: {:.3f}'.format(best_fit_depth))
-folded = flat.fold(period=best_fit_period, t0=periodogram.transit_time_at_max_power)
+best_fit_time=periodogram.transit_time_at_max_power
+print(best_fit_time)
+folded = flat.fold(period=best_fit_period, t0=best_fit_time)
 folded.scatter() # .errorbar();
 plt.show();
 folded.plot_river()
