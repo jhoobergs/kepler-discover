@@ -2,3 +2,4 @@ name: base
 dependencies:
   - lightkurve
   - matplotlib
+  - numpy
