@@ -1,5 +1,7 @@
-name: base
 dependencies:
   - lightkurve[all]
   - matplotlib
   - numpy
+  - pip
+  - pip:
+    - jupyter-server-proxy
