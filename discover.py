@@ -1,6 +1,8 @@
 import lightkurve as lk
 import matplotlib.pyplot as plt
 import argparse
+from scipy.interpolate import CubicSpline
+from own import process_folded_lc, is_there_a_planet
 parser = argparse.ArgumentParser(description='Find an exoplanet around a star.')
 parser.add_argument('star', type=str, help='the star')
 parser.add_argument('quarter', type=int, help='the quarter')
@@ -48,6 +50,11 @@ while min_period != -1:
     plt.show();
     folded.plot_river()
     plt.show();
+
+    interpolations=process_folded_lc(folded, prints=True, plots=True)
+    valid=is_there_a_planet(*interpolations)
+    print(valid)
+
     print("From")
     min_period=float(input())
 
@@ -62,6 +69,8 @@ while period != -1:
     plt.show();
     folded.plot_river()
     plt.show();
-        
+
+    process_folded_lc(folded)
+
     print("Period")
     period = float(input())

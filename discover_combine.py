@@ -51,10 +51,10 @@ plt.show();
 
 import numpy as np
 print("From")
-min_period=int(input())
+min_period=float(input())
 while min_period != -1:
     print("To")
-    max_period=int(input())
+    max_period=float(input())
     periodogram = flat.to_periodogram(method="bls", period=np.arange(min_period, max_period, 0.0001)) # (max_period - min_period) / 100))
     periodogram.plot();
     plt.show();
