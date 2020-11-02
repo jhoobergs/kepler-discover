@@ -6,9 +6,10 @@ import numpy as np
 from own import find_planet_iter_per
 
 parser = argparse.ArgumentParser(description='Find an exoplanet around a star.')
-parser.add_argument('star', type=str, help='the star')
 parser.add_argument('quarter', type=int, help='the quarter')
 
 args = parser.parse_args()
 
-find_planet_iter_per(args.star, args.quarter);
+for i in range(1, 30):
+    star = "Kepler-" + str(i)
+    find_planet_iter_per(star, args.quarter);
