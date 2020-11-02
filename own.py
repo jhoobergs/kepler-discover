@@ -6,6 +6,14 @@ def is_there_a_planet(left, center, right):
     abs(1-left[0]) < 0.001 and abs(left[1]) < 0.001 and abs(left[2]) < 0.001 and \
     abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 4 and \
     abs(1-right[0]) < 0.001 and abs(right[1]) < 0.001 and abs(right[2]) < 0.001 
+    
+def planet_score(left, center, right):
+    return \
+    abs(1-left[0])**2 + abs(left[1])**2 + abs(left[2])**2 + \
+    abs(1-right[0])**2 + abs(right[1])**2 + abs(right[2])**2  + \
+    abs(center[1])**2
+    #abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 4 and \
+    
 
 
 def process_folded_lc(folded, border=0.03, plots=False, prints=False):
