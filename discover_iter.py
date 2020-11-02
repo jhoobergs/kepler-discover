@@ -74,5 +74,5 @@ best_folded.bin().scatter() # .errorbar();
 plt.show();
 best_folded.plot_river()
 plt.show();
-print("Found", best_fit_period, transit_time_at_max_power)
+print("Found", best_result[0], best_result[1])
 print(best_interpolations)
