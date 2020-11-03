@@ -1,33 +1,42 @@
 import lightkurve as lk
 import matplotlib.pyplot as plt
 import argparse
-from scipy.interpolate import CubicSpline
+from scipy.interpolate import UnivariateSpline
 import numpy as np
 
-def is_there_a_planet(left, center, right):
+def is_there_a_planet(left, center, right, left_stats, center_stats, right_stats):
     return \
-    abs(1-left[0]) < 0.001 and abs(left[1]) < 0.001 and abs(left[2]) < 0.001 and \
-    abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 4 and \
-    abs(1-right[0]) < 0.001 and abs(right[1]) < 0.001 and abs(right[2]) < 0.001 
-    
-def planet_score(left, center, right):
-    return \
-    abs(1-left[0])**2 + abs(left[1])**2 + abs(left[2])**2 + \
-    abs(1-right[0])**2 + abs(right[1])**2 + abs(right[2])**2  + \
-    abs(center[1])**2
-    #abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 4 and \
-    
+    abs(1-left[0]) < 0.01 and abs(left[1]) < 0.01 and \
+    abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 2 and \
+    abs(1-right[0]) < 0.01 and abs(right[1]) < 0.01
 
+    #left_stats < 0.01 and center_stats < 0.01 and right_stats < 0.01 and \
+    #abs(1-left[0]) < 0.01 and abs(left[1]) < 0.01 and abs(left[2]) < 0.01 and \
+    #abs(1-right[0]) < 0.01 and abs(right[1]) < 0.01 and abs(right[2]) < 0.01 
+    
+def planet_score(left, center, right, left_stats, center_stats, right_stats):
+    L = left.integ()
+    C = center.integ()
+    R = right.integ()
+    return L(0)-L(-0.5) + R(0) - R(0.5)
+    #return \
+    #10*abs(left[1])**1 + \
+    #10*abs(right[1])**1 + \
+    #abs(center[1])**1
+    #abs(1-left[0])**1 + abs(left[1])**1 + \
+    #abs(1-right[0])**1 + abs(right[1])**1 + \
+    #abs(center[1])**1
+    
 
 def process_folded_lc(folded, border=0.03, plots=False, prints=False):
     left_part = list(filter(lambda t: t < -border, folded.time))
-    left_line = np.polyfit(left_part, folded.flux[:len(left_part)], 2)
+    left_line, left_stats = np.polyfit(left_part, folded.flux[:len(left_part)], 1, full=True)[:2]
     left_line_p = np.poly1d(left_line)
     right_part = list(filter(lambda t: t > border, folded.time))
-    right_line = np.polyfit(right_part, folded.flux[-len(right_part):], 2)
+    right_line, right_stats = np.polyfit(right_part, folded.flux[-len(right_part):], 1, full=True)[:2]
     right_line_p = np.poly1d(right_line)
     center_part = folded.time[len(left_part):-len(right_part)]
-    center_line = np.polyfit(center_part, folded.flux[len(left_part):-len(right_part)], 2)
+    center_line, center_stats = np.polyfit(center_part, folded.flux[len(left_part):-len(right_part)], 2, full=True)[:2]
     center_line_p = np.poly1d(center_line)
     #cs = CubicSpline(folded.time, folded.flux)
     left_range = np.arange(-0.5, -border, 0.001)
@@ -40,11 +49,11 @@ def process_folded_lc(folded, border=0.03, plots=False, prints=False):
         plt.plot(center_range, center_line_p(center_range))
         plt.show();
     
-    result = (left_line_p, center_line_p, right_line_p)
+    result = (left_line_p, center_line_p, right_line_p, left_stats, center_stats, right_stats)
     if prints:
-        print(result[0])
-        print(result[1])
-        print(result[2])
+        print(result[0], result[3])
+        print(result[1], result[4])
+        print(result[2], result[5])
     return result
 
 def find_planet_iter_per(star, quarter):
@@ -79,16 +88,16 @@ def find_planet_iter_per(star, quarter):
             score = planet_score(*interpolations)
             # print(best_fit_period, transit_time_at_max_power, interpolations, score)
             if best_planet_score is None or score < best_planet_score:
+                print(score)
+                interpolations = process_folded_lc(folded, plots=True)
+
                 best_planet_score = score
                 best_folded = folded
                 best_result = (best_fit_period, transit_time_at_max_power)
                 best_interpolations = interpolations
                 # print(interpolations)
-    #best_folded.bin().scatter() # .errorbar();
-    #plt.show();
-    #best_folded.plot_river()
-    #plt.show();
     if best_result is not None:
+        process_folded_lc(best_folded, plots= True)
         print(star, best_result[0], best_result[1])
     else:
         print(star, "No planet found")
