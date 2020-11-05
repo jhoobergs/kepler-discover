@@ -5,12 +5,13 @@ from scipy.interpolate import UnivariateSpline
 import numpy as np
 
 def is_there_a_planet(left, center, right, left_stats, center_stats, right_stats):
+    
+
     return \
     abs(1-left[0]) < 0.01 and abs(left[1]) < 0.01 and \
     abs(center[0]) > 0.02 and abs(center[1]) < 0.01 and abs(center[2]) > 2 and \
-    abs(1-right[0]) < 0.01 and abs(right[1]) < 0.01
-
-    #left_stats < 0.01 and center_stats < 0.01 and right_stats < 0.01 and \
+    abs(1-right[0]) < 0.01 and abs(right[1]) < 0.01 and \
+    left_stats[0] < 0.001 and center_stats[0] < 0.001 and right_stats[0] < 0.001 # and \
     #abs(1-left[0]) < 0.01 and abs(left[1]) < 0.01 and abs(left[2]) < 0.01 and \
     #abs(1-right[0]) < 0.01 and abs(right[1]) < 0.01 and abs(right[2]) < 0.01 
     
@@ -18,7 +19,7 @@ def planet_score(left, center, right, left_stats, center_stats, right_stats):
     L = left.integ()
     C = center.integ()
     R = right.integ()
-    return L(0)-L(-0.5) + R(0) - R(0.5)
+    return 1 - (L(0)-L(-0.5) + R(0.5) - R(0))
     #return \
     #10*abs(left[1])**1 + \
     #10*abs(right[1])**1 + \
@@ -84,20 +85,20 @@ def find_planet_iter_per(star, quarter):
         folded = flat.fold(period=best_fit_period, t0=transit_time_at_max_power)
 
         interpolations = process_folded_lc(folded)
-        if is_there_a_planet(*interpolations):
-            score = planet_score(*interpolations)
-            # print(best_fit_period, transit_time_at_max_power, interpolations, score)
-            if best_planet_score is None or score < best_planet_score:
-                print(score)
-                interpolations = process_folded_lc(folded, plots=True)
+        #if is_there_a_planet(*interpolations):
+        score = planet_score(*interpolations)
+        # print(best_fit_period, transit_time_at_max_power, interpolations, score)
+        if best_planet_score is None or score < best_planet_score:
+            #print(score)
+            interpolations = process_folded_lc(folded, plots=False)
 
-                best_planet_score = score
-                best_folded = folded
-                best_result = (best_fit_period, transit_time_at_max_power)
-                best_interpolations = interpolations
-                # print(interpolations)
+            best_planet_score = score
+            best_folded = folded
+            best_result = (best_fit_period, transit_time_at_max_power)
+            best_interpolations = interpolations
+            # print(interpolations)
     if best_result is not None:
-        process_folded_lc(best_folded, plots= True)
+        process_folded_lc(best_folded, plots= False)
         print(star, best_result[0], best_result[1])
     else:
         print(star, "No planet found")
