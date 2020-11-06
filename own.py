@@ -19,7 +19,7 @@ def planet_score(left, center, right, left_stats, center_stats, right_stats):
     L = left.integ()
     C = center.integ()
     R = right.integ()
-    return 1 - (L(0)-L(-0.5) + R(0.5) - R(0))
+    return abs(1 - (L(0)-L(-0.5) + R(0.5) - R(0)))
     #return \
     #10*abs(left[1])**1 + \
     #10*abs(right[1])**1 + \
@@ -31,11 +31,17 @@ def planet_score(left, center, right, left_stats, center_stats, right_stats):
 
 def process_folded_lc(folded, border=0.03, plots=False, prints=False):
     left_part = list(filter(lambda t: t < -border, folded.time))
-    left_line, left_stats = np.polyfit(left_part, folded.flux[:len(left_part)], 1, full=True)[:2]
+    left_flux = folded.flux[:len(left_part)]
+    left_valid_idx = np.isfinite(left_flux)
+    left_line, left_stats = np.polyfit(np.array(left_part)[left_valid_idx], left_flux[left_valid_idx], 1, full=True)[:2]
     left_line_p = np.poly1d(left_line)
+
     right_part = list(filter(lambda t: t > border, folded.time))
-    right_line, right_stats = np.polyfit(right_part, folded.flux[-len(right_part):], 1, full=True)[:2]
+    right_flux = folded.flux[-len(right_part):]
+    right_valid_idx = np.isfinite(right_flux)
+    right_line, right_stats = np.polyfit(np.array(right_part)[right_valid_idx], right_flux[right_valid_idx], 1, full=True)[:2]
     right_line_p = np.poly1d(right_line)
+
     center_part = folded.time[len(left_part):-len(right_part)]
     center_line, center_stats = np.polyfit(center_part, folded.flux[len(left_part):-len(right_part)], 2, full=True)[:2]
     center_line_p = np.poly1d(center_line)
@@ -59,20 +65,14 @@ def process_folded_lc(folded, border=0.03, plots=False, prints=False):
 
 def find_planet_iter_per(star, quarter):
     tpf = lk.search_targetpixelfile(star, quarter=quarter).download()
-    #tpf.plot(frame=100, scale='log', show_colorbar=True)
-    #plt.show()
+    if tpf is None:
+        print(star, "No planet found")
+        return
+
 
     lc = tpf.to_lightcurve(aperture_mask=tpf.pipeline_mask)
-    #lc.plot()
-    #plt.show();
 
     flat, trend = lc.flatten(window_length=301, return_trend=True)
-    #ax = lc.errorbar(label=args.star)                   # plot() returns a matplotlib axes ...
-    #trend.plot(ax=ax, color='red', lw=2, label='Trend');  # which we can pass to the next plot() to use the same axes
-    #plt.show();
-
-    #flat.errorbar(label=args.star);
-    #plt.show();
 
     best_planet_score = None
     best_folded = None
@@ -99,7 +99,73 @@ def find_planet_iter_per(star, quarter):
             # print(interpolations)
     if best_result is not None:
         process_folded_lc(best_folded, plots= False)
-        print(star, best_result[0], best_result[1])
+        print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
+    else:
+        print(star, "No planet found")
+    #print(best_interpolations)
+
+def combine(star):
+    lcs = []
+    flat_lcs = []
+    trend_lcs = []
+    for quarter in range(1, 18):
+        tpf = lk.search_targetpixelfile(star, quarter=quarter).download()
+        if tpf is None:
+            # print("Missing", quarter)
+            continue
+
+        lc = tpf.to_lightcurve(aperture_mask=tpf.pipeline_mask)
+        flat, trend = lc.flatten(window_length=301, return_trend=True)
+        lcs.append(lc)
+        flat_lcs.append(flat)
+        trend_lcs.append(trend)
+        lc = lk.LightCurveCollection(lcs).stitch() 
+
+    if len(lcs) == 0:
+        return None
+    flat = lk.LightCurveCollection(flat_lcs).stitch()
+    trend = lk.LightCurveCollection(trend_lcs).stitch()
+    
+    return flat, trend
+
+
+
+def find_planet_combine_iter_per(star):
+    res = combine(star)
+    if res is None:
+        print(star, "No planet found")
+    flat, trend = res
+    best_planet_score = None
+    best_folded = None
+    best_result = None
+    best_interpolations = None
+    #for best_fit_period_start in np.arange(0.5, 700.1, 0.5): 
+    ranges = np.logspace(0,11, num=50, base=2) / 2
+    for i in range(len(ranges)-1):
+        best_fit_period_start = ranges[i]
+        best_fit_period_end = ranges[i+1]
+        diff = best_fit_period_end - best_fit_period_start 
+        periodogram = flat.to_periodogram(method="bls", period=np.arange(best_fit_period_start, best_fit_period_end, max(0.0001, diff/10000)))
+        best_fit_period = periodogram.period_at_max_power
+        transit_time_at_max_power = periodogram.transit_time_at_max_power
+        folded = flat.fold(period=best_fit_period, t0=transit_time_at_max_power)
+
+        interpolations = process_folded_lc(folded)
+        #if is_there_a_planet(*interpolations):
+        score = planet_score(*interpolations)
+        # print(best_fit_period, transit_time_at_max_power, interpolations, score)
+        if best_planet_score is None or score < best_planet_score:
+            #print(score)
+            interpolations = process_folded_lc(folded, plots=False)
+
+            best_planet_score = score
+            best_folded = folded
+            best_result = (best_fit_period, transit_time_at_max_power)
+            best_interpolations = interpolations
+            # print(interpolations)
+    if best_result is not None:
+        process_folded_lc(best_folded, plots= False)
+        print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
     else:
         print(star, "No planet found")
     #print(best_interpolations)

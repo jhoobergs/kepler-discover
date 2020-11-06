@@ -1,4 +1,4 @@
-
+import math
 import lightkurve as lk
 import own
 def get_flat(star, q):
@@ -94,3 +94,17 @@ def test_planet_score_harmonics_kepler_8():
     helper_harmonics(8)
 def test_planet_score_shift_kepler_8():
     helper_shift(8)
+
+combined = {
+    "Kepler-1": own.combine("Kepler-1"), 
+}
+
+def helper_planet_score_combine(flat, trend, period, t):
+        folded = flat.fold(period=period, t0=t)
+        interpolations = own.process_folded_lc(folded)
+        score = own.planet_score(*interpolations)
+        assert math.isnan(score) == False
+
+def test_score_combine_1_no_nan():
+    helper_planet_score_combine(*combined["Kepler-1"], 0.8235999999999644, 131.7873081918282)
+
