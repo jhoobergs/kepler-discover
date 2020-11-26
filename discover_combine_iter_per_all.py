@@ -5,10 +5,12 @@ from scipy.interpolate import CubicSpline
 import numpy as np
 from own import find_planet_combine_iter_per
 
-parser = argparse.ArgumentParser(description='Find an exoplanet around a star.')
+amount = int(input())
 
-args = parser.parse_args()
-
-for i in range(1, 300):
-    star = "Kepler-" + str(i)
-    find_planet_combine_iter_per(star);
+for i in range(amount):
+    star = input()
+    res = find_planet_combine_iter_per(star);
+    if res is None:
+        print(star, -1)
+    else:
+        print(star, res)

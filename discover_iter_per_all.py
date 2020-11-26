@@ -10,6 +10,12 @@ parser.add_argument('quarter', type=int, help='the quarter')
 
 args = parser.parse_args()
 
-for i in range(1, 300):
-    star = "Kepler-" + str(i)
-    find_planet_iter_per(star, args.quarter);
+amount = int(input())
+
+for i in range(amount):
+    star = input()
+    res = find_planet_iter_per(star, args.quarter);
+    if res is None:
+        print(star, -1)
+    else:
+        print(star, res)

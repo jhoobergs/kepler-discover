@@ -66,8 +66,7 @@ def process_folded_lc(folded, border=0.03, plots=False, prints=False):
 def find_planet_iter_per(star, quarter):
     tpf = lk.search_targetpixelfile(star, quarter=quarter).download()
     if tpf is None:
-        print(star, "No planet found")
-        return
+        return None
 
 
     lc = tpf.to_lightcurve(aperture_mask=tpf.pipeline_mask)
@@ -99,9 +98,11 @@ def find_planet_iter_per(star, quarter):
             # print(interpolations)
     if best_result is not None:
         process_folded_lc(best_folded, plots= False)
-        print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
+        #print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
+        return str(best_result[0])[:-2]
     else:
-        print(star, "No planet found")
+        #print(star, "No planet found")
+        return None
     #print(best_interpolations)
 
 def combine(star):
@@ -133,19 +134,20 @@ def combine(star):
 def find_planet_combine_iter_per(star):
     res = combine(star)
     if res is None:
-        print(star, "No planet found")
+        return None
+        #print(star, "No planet found")
     flat, trend = res
     best_planet_score = None
     best_folded = None
     best_result = None
     best_interpolations = None
     #for best_fit_period_start in np.arange(0.5, 700.1, 0.5): 
-    ranges = np.logspace(0,11, num=50, base=2) / 2
+    ranges = np.logspace(0,11, num=30, base=2) / 2
     for i in range(len(ranges)-1):
         best_fit_period_start = ranges[i]
         best_fit_period_end = ranges[i+1]
         diff = best_fit_period_end - best_fit_period_start 
-        periodogram = flat.to_periodogram(method="bls", period=np.arange(best_fit_period_start, best_fit_period_end, max(0.0001, diff/10000)))
+        periodogram = flat.to_periodogram(method="bls", period=np.arange(best_fit_period_start, best_fit_period_end, max(0.01, diff/10000)))
         best_fit_period = periodogram.period_at_max_power
         transit_time_at_max_power = periodogram.transit_time_at_max_power
         folded = flat.fold(period=best_fit_period, t0=transit_time_at_max_power)
@@ -165,7 +167,9 @@ def find_planet_combine_iter_per(star):
             # print(interpolations)
     if best_result is not None:
         process_folded_lc(best_folded, plots= False)
-        print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
+        #print(star, str(best_result[0])[:-2], best_result[1], best_planet_score)
+        return str(best_result[0])[:-2]
     else:
-        print(star, "No planet found")
+        return None
+        #print(star, "No planet found")
     #print(best_interpolations)
