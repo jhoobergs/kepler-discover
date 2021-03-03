@@ -43,18 +43,43 @@ def calculate_planet_drop(planet, x):
 
 step = 0.01
 start = min(planet1[2], planet2[2])
-end = 2000
+end = 500
 
-light = np.ones(int((end-start)/step))
-
+light = np.ones(int((end-start+step)/step))
+light_err = np.zeros(int((end-start+step)/step))
+time = np.arange(start, end, step, dtype=np.float64)
 for i in range(len(light)):
     x = start + i * step
     light[i] -= calculate_planet_drop(planet1, x)
     light[i] -= calculate_planet_drop(planet2, x)
 
+import lightkurve as lk
+
+lc = lk.LightCurve(time=time, flux=light, flux_err=light_err)
+
 #plt.plot(light)
 #plt.show()
+"""
+folded = lc.fold(period=transit, t0=plan²oet1[3])
+folded.bin().scatter()
+folded.plot_river()
+plt.show()
+"""
 
+"""
+folded = lc.fold(period=0.94, t0=260.360)
+folded.bin().scatter()
+folded.plot_river()
+"""
+
+folded = lc.fold(period=5.630, t0=264.200)
+folded.bin().scatter()
+folded.plot_river()
+
+
+plt.show()
+
+"""
 def fold(light, fold_start, fold_period):
     res_x = []
     res_y = []
@@ -72,8 +97,9 @@ def fold_plot(light, fold_start, fold_period):
     return folded
 
 default_fold = fold_plot(light, planet1[3], transit)
-fold_plot(light, 260.950, 0.750)
-
+#fold_plot(light, 260.950, 0.750)
+fold_plot(light, 269.850, 10.540)
+"""
 
         
         
