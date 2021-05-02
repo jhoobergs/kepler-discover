@@ -1,5 +1,10 @@
 name: base
+channels:
+  - conda-forge
 dependencies:
-  - lightkurve[all]=1.11.3
-  - matplotlib
-  - numpy
+   - python
+   - pip
+   - pip:
+     - lightkurve[all]==1.11.3
+     - matplotlib
+     - numpy
